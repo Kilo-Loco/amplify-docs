@@ -8,7 +8,7 @@ For simplicity, this Guide demonstrates how to perform parallel processing using
 
 ## Create and update in parallel
 
-To write data to the DataStore in parallel, pass an array of models to a Combine `Publishers.Sequence` and perform `Amplify.DataStore.save(_ model:)` on each object:
+To write data to the DataStore in parallel, use the `.publisher` property of the array to execute `Amplify.DataStore.save(_ model:)` on each object:
 
 ```swift
 let todos = [
@@ -17,7 +17,7 @@ let todos = [
     Todo(name: "Profit")
 ]
 
-let sink = Publishers.Sequence<[Todo], Never>(sequence: todos)
+let sink = todos.publisher
     .flatMap { todo -> AnyPublisher<Todo, DataStoreError> in
         Amplify.DataStore.save(todo)
     }
@@ -31,16 +31,16 @@ let sink = Publishers.Sequence<[Todo], Never>(sequence: todos)
     }
 ```
 
-`Publishers.Sequence` creates a `Publisher` where each model is passed to `.flatMap()` individually, allowing for each object to be saved to DataStore. `.collect()` emits a single array of all the elements collected, returning the saved models in `receiveValue`.
+The `.publisher` property creates a `Publisher` where each model is passed to `.flatMap()` individually, allowing for each object to be saved to DataStore. `.collect()` emits a single array of all the elements collected, returning the saved models in `receiveValue`.
 
 ## Delete in parallel
 
-To delete items in parallel, pass an array of IDs to `Publishers.Sequence` and perform `Amplify.DataStore.delete(_withId:)` for each ID:
+To delete items in parallel, use the `.publisher` property of the array to execute `Amplify.DataStore.delete(_withId:)` for each ID:
 
 ```swift
 let todoIds = ["123", "456", "789"]
 
-let sink = Publishers.Sequence<[String], Never>(sequence: todoIds)
+let sink = todoIds.publisher
     .flatMap { todoId -> AnyPublisher<Void, DataStoreError> in
         Amplify.DataStore.delete(Todo.self, withId: todoId)
     }
@@ -58,12 +58,12 @@ let sink = Publishers.Sequence<[String], Never>(sequence: todoIds)
 
 ## Query in parallel
 
-To query items in parallel, pass an array of IDs to `Publishers.Sequence` and perform `Amplify.DataStore.query(_:byId:)` for each ID:
+To query items in parallel, use the `.publisher` property of the array to execute `Amplify.DataStore.query(_:byId:)` for each ID:
 
 ```swift
 let todoIds = ["123", "456", "789"]
 
-let sink = Publishers.Sequence<[String], Never>(sequence: todoIds)
+let sink = todoIds.publisher
     .flatMap { itemId -> AnyPublisher<Todo?, DataStoreError> in
         Amplify.DataStore.query(Todo.self, byId: itemId)
     }
